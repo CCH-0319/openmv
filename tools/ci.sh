@@ -39,9 +39,19 @@ ci_install_gnu_make() {
 
 ########################################################################################
 # Update Submodules.
+#ci_update_submodules() {
+#  git submodule update --init --depth=1 --no-single-branch
+#  git -C lib/micropython/ submodule update --init --depth=1
+#}
 ci_update_submodules() {
+  set -euo pipefail
+  git submodule sync --recursive
   git submodule update --init --depth=1 --no-single-branch
-  git -C lib/micropython/ submodule update --init --depth=1
+  if [[ -n "${MPY_FORK_URL:-}" ]]; then
+    git submodule set-url lib/micropython "${MPY_FORK_URL}"
+    git submodule sync lib/micropython
+  fi
+  git -C lib/micropython submodule update --init --depth=1
 }
 
 ########################################################################################
