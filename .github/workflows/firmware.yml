@@ -60,7 +60,13 @@ jobs:
       with:
         submodules: false
 
+    #- name: '🧱 Update submodules'
+    #  run: source tools/ci.sh && ci_update_submodules
     - name: '🧱 Update submodules'
+      env:
+        MPY_FORK_URL: https://github.com/CCH-0319/micropython.git
+        MPY_BRANCH: master   # 或改用 MPY_SHA: v1.23.0 / <40位SHA>
+        SUBMODULE_DEPTH: "1"           # 想更快可設 1；若用 MPY_SHA 會自動 unshallow
       run: source tools/ci.sh && ci_update_submodules
 
     - name: '♻ Caching dependencies'
