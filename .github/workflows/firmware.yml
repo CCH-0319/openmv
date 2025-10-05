@@ -38,6 +38,7 @@ jobs:
           #- OPENMV2
           #- OPENMV3
           #- OPENMV4
+          - STM32H743XIH6
           - OPENMV4P
           #- OPENMVPT
           #- OPENMV_RT1060
