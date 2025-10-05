@@ -66,16 +66,27 @@ jobs:
       shell: bash
       run: |
         set -euxo pipefail
-        # 1) 改 .gitmodules 的 URL 並同步到 .git/config
-        git config -f .gitmodules submodule.lib/micropython.url https://github.com/CCH-0319/micropython.git
+
+        # 1) 用「路徑」改 URL（會同時更新 .gitmodules 與本地設定）
+        git submodule set-url lib/micropython https://github.com/CCH-0319/micropython.git
         git submodule sync -- lib/micropython
-        # 2) 初始化/更新該 submodule，取到可切分支的歷史
+
+        # 2) 如果之前已被 clone 到上游 URL，保險起見也把 origin 改掉（冪等）
+        git -C lib/micropython remote set-url origin https://github.com/CCH-0319/micropython.git || true
+
+        # 3) 初始化/更新（保留多分支歷史，之後才能 checkout 指定分支）
         git submodule update --init --depth=1 --no-single-branch lib/micropython
-        # 3) 切到 fork 的 master（建立/重置本地分支對應遠端）
-        git -C lib/micropython fetch origin master --depth=50 || git -C lib/micropython fetch origin master
+
+        # 4) 切到你 fork 的 master 分支
+        git -C lib/micropython fetch origin master --depth=50 || true
         git -C lib/micropython checkout -B master origin/master
-        # 4) 如果 micropython 裡面自己還有子模組，就把它們也 init 一下
+
+        # 5) 若 micropython 裡面也有 submodules，一併初始化
         git -C lib/micropython submodule update --init --depth=1
+
+        # 6) 驗證
+        git -C lib/micropython remote -v
+        git -C lib/micropython rev-parse --abbrev-ref HEAD
 
     - name: '🧱 Update submodules (rest)'
       shell: bash
