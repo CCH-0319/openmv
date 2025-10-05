@@ -95,6 +95,16 @@ jobs:
         source tools/ci.sh
         ci_update_submodules
 
+    - name: '🔒 Ensure micropython stays on my fork@master'
+      shell: bash
+      run: |
+        set -euxo pipefail
+        git -C lib/micropython remote set-url origin https://github.com/CCH-0319/micropython.git
+        git -C lib/micropython fetch origin master --depth=50 || true
+        git -C lib/micropython checkout -B master origin/master
+        git -C lib/micropython remote -v
+        git -C lib/micropython rev-parse --abbrev-ref HEAD
+
     - name: '♻ Caching dependencies'
       uses: actions/cache@v4.3.0
       id: cache
