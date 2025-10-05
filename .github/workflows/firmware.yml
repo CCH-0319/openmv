@@ -62,12 +62,27 @@ jobs:
 
     #- name: '🧱 Update submodules'
     #  run: source tools/ci.sh && ci_update_submodules
-    - name: '🧱 Update submodules'
-      env:
-        MPY_FORK_URL: https://github.com/CCH-0319/micropython.git
-        MPY_BRANCH: master   # 或改用 MPY_SHA: v1.23.0 / <40位SHA>
-        SUBMODULE_DEPTH: "1"           # 想更快可設 1；若用 MPY_SHA 會自動 unshallow
-      run: source tools/ci.sh && ci_update_submodules
+    - name: '🧱 Point micropython submodule to my fork@master'
+      shell: bash
+      run: |
+        set -euxo pipefail
+        # 1) 改 .gitmodules 的 URL 並同步到 .git/config
+        git config -f .gitmodules submodule.lib/micropython.url https://github.com/CCH-0319/micropython.git
+        git submodule sync -- lib/micropython
+        # 2) 初始化/更新該 submodule，取到可切分支的歷史
+        git submodule update --init --depth=1 --no-single-branch lib/micropython
+        # 3) 切到 fork 的 master（建立/重置本地分支對應遠端）
+        git -C lib/micropython fetch origin master --depth=50 || git -C lib/micropython fetch origin master
+        git -C lib/micropython checkout -B master origin/master
+        # 4) 如果 micropython 裡面自己還有子模組，就把它們也 init 一下
+        git -C lib/micropython submodule update --init --depth=1
+
+    - name: '🧱 Update submodules (rest)'
+      shell: bash
+      run: |
+        set -euxo pipefail
+        source tools/ci.sh
+        ci_update_submodules
 
     - name: '♻ Caching dependencies'
       uses: actions/cache@v4.3.0
