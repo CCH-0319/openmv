@@ -60,50 +60,65 @@ jobs:
       with:
         submodules: false
 
+
     #- name: '🧱 Update submodules'
     #  run: source tools/ci.sh && ci_update_submodules
-    - name: '🧱 Point micropython submodule to my fork@master'
+
+    # 1) 指到你的 fork，抓到可切分支/標籤的歷史，然後 checkout openmv-1.26.0（自動辨識 branch 或 tag）
+    - name: '🧱 Point micropython submodule to my fork@openmv-1.26.0'
       shell: bash
+      env:
+        MPY_URL: https://github.com/CCH-0319/micropython.git
+        MPY_REF: openmv-1.26.0
       run: |
         set -euxo pipefail
-
-        # 1) 用「路徑」改 URL（會同時更新 .gitmodules 與本地設定）
-        git submodule set-url lib/micropython https://github.com/CCH-0319/micropython.git
+        git submodule set-url lib/micropython "$MPY_URL"
         git submodule sync -- lib/micropython
-
-        # 2) 如果之前已被 clone 到上游 URL，保險起見也把 origin 改掉（冪等）
-        git -C lib/micropython remote set-url origin https://github.com/CCH-0319/micropython.git || true
-
-        # 3) 初始化/更新（保留多分支歷史，之後才能 checkout 指定分支）
+        # 以可切換不同 ref 的方式初始化（保留多分支歷史）
         git submodule update --init --depth=1 --no-single-branch lib/micropython
-
-        # 4) 切到你 fork 的 master 分支
-        git -C lib/micropython fetch origin master --depth=50 || true
-        git -C lib/micropython checkout -B master origin/master
-
-        # 5) 若 micropython 裡面也有 submodules，一併初始化
+        # 取回所有 heads 與 tags，確保下步能辨識與 checkout
+        git -C lib/micropython remote set-url origin "$MPY_URL"
+        git -C lib/micropython fetch origin "+refs/heads/*:refs/remotes/origin/*" "+refs/tags/*:refs/tags/*" --prune
+        # 若 ref 是「分支」→ 切分支；否則視為「tag」→ 切標籤（detached HEAD）
+        if git -C lib/micropython show-ref --verify --quiet "refs/remotes/origin/$MPY_REF"; then
+          git -C lib/micropython checkout -B "$MPY_REF" "origin/$MPY_REF"
+        elif git -C lib/micropython show-ref --verify --quiet "refs/tags/$MPY_REF"; then
+          git -C lib/micropython checkout -q "tags/$MPY_REF"
+        else
+          echo "❌ Ref '$MPY_REF' not found on $MPY_URL"
+          git -C lib/micropython ls-remote --heads --tags origin
+          exit 1
+        fi
+        # 若 micropython 裡還有子模組，一併初始化
         git -C lib/micropython submodule update --init --depth=1
 
-        # 6) 驗證
-        git -C lib/micropython remote -v
-        git -C lib/micropython rev-parse --abbrev-ref HEAD
-
-    - name: '🧱 Update submodules (rest)'
+    # 2) 官方原樣的 submodule 更新（不改）
+    - name: '🧱 Update submodules (official)'
       shell: bash
       run: |
         set -euxo pipefail
         source tools/ci.sh
         ci_update_submodules
 
-    - name: '🔒 Ensure micropython stays on my fork@master'
+    # 3) 再鎖一次，避免上一步把 HEAD 拉回父倉庫記錄的 gitlink
+    - name: '🔒 Ensure micropython stays on my fork@openmv-1.26.0'
       shell: bash
+      env:
+        MPY_URL: https://github.com/CCH-0319/micropython.git
+        MPY_REF: openmv-1.26.0
       run: |
         set -euxo pipefail
-        git -C lib/micropython remote set-url origin https://github.com/CCH-0319/micropython.git
-        git -C lib/micropython fetch origin master --depth=50 || true
-        git -C lib/micropython checkout -B master origin/master
+        git -C lib/micropython remote set-url origin "$MPY_URL"
+        git -C lib/micropython fetch origin "+refs/heads/*:refs/remotes/origin/*" "+refs/tags/*:refs/tags/*" --prune
+        if git -C lib/micropython show-ref --verify --quiet "refs/remotes/origin/$MPY_REF"; then
+          git -C lib/micropython checkout -B "$MPY_REF" "origin/$MPY_REF"
+        else
+          git -C lib/micropython checkout -q "tags/$MPY_REF"
+        fi
+        #（可選）輸出版本以便審核
         git -C lib/micropython remote -v
-        git -C lib/micropython rev-parse --abbrev-ref HEAD
+        git -C lib/micropython log -1 --oneline
+
 
     - name: '♻ Caching dependencies'
       uses: actions/cache@v4.3.0
