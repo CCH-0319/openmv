@@ -39,8 +39,8 @@ jobs:
           #- OPENMV3
           #- OPENMV4
           - STM32H743VGT6
-          - STM32H743XIH6
-          - OPENMV4P
+          #- STM32H743XIH6
+          #- OPENMV4P
           #- OPENMVPT
           #- OPENMV_RT1060
           #- OPENMV_AE3
@@ -52,9 +52,9 @@ jobs:
           #- ARDUINO_NANO_33_BLE_SENSE
           #- DOCKER
         profile: [0]   # default profile
-        include:
-          - target: OPENMV_N6
-            profile: 1
+        #include:
+        #  - target: OPENMV_N6
+        #    profile: 1
       fail-fast: false
     steps:
     - name: '⏳ Checkout repository'
