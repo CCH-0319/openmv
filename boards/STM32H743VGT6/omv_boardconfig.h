@@ -230,9 +230,9 @@
 #define OMV_CSI_HSYNC_PIN                     (&omv_pin_A4_DCMI)
 #define OMV_CSI_VSYNC_PIN                     (&omv_pin_B7_DCMI)
 #define OMV_CSI_PXCLK_PIN                     (&omv_pin_A6_DCMI)
-#define OMV_CSI_RESET_PIN                     (&omv_pin_B3_GPIO)    //(&omv_pin_A10_GPIO)
-#define OMV_CSI_POWER_PIN                     (&omv_pin_D14_GPIO)   //(&omv_pin_D7_GPIO)
-#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)    //(&omv_pin_B4_GPIO)
+#define OMV_CSI_RESET_PIN                     (&omv_pin_A10_GPIO)  //(&omv_pin_B3_GPIO)    //
+#define OMV_CSI_POWER_PIN                     (&omv_pin_D7_GPIO)   //(&omv_pin_D14_GPIO)   //
+#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)   //(&omv_pin_B4_GPIO)    //
 
 // Physical I2C buses.
 
