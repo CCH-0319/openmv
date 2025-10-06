@@ -278,14 +278,24 @@
 #define OMV_SPI4_SSEL_PIN                     (&omv_pin_E11_SPI4)
 
 // SPI LCD Interface
-#define OMV_SPI_DISPLAY_CONTROLLER            (OMV_SPI4_ID) //(OMV_SPI2_ID)
+/*#define OMV_SPI_DISPLAY_CONTROLLER            (OMV_SPI4_ID) //(OMV_SPI2_ID)
 #define OMV_SPI_DISPLAY_MOSI_PIN              (&omv_pin_E14_SPI4)
 #define OMV_SPI_DISPLAY_MISO_PIN              (&omv_pin_E13_SPI4)
 #define OMV_SPI_DISPLAY_SCLK_PIN              (&omv_pin_E12_SPI4)
 #define OMV_SPI_DISPLAY_SSEL_PIN              (&omv_pin_E11_SPI4)
 
-#define OMV_SPI_DISPLAY_RS_PIN                (&omv_pin_E10_GPIO)  `//(&omv_pin_D13_GPIO)
+#define OMV_SPI_DISPLAY_RS_PIN                (&omv_pin_E10_GPIO)   //(&omv_pin_D13_GPIO)
 #define OMV_SPI_DISPLAY_RST_PIN               (&omv_pin_E15_GPIO)   //(&omv_pin_D12_GPIO)
 #define OMV_SPI_DISPLAY_BL_PIN                (&omv_pin_D15_GPIO)   //(&omv_pin_A5_GPIO)
+*/
+#define OMV_SPI_DISPLAY_CONTROLLER            (OMV_SPI2_ID)
+#define OMV_SPI_DISPLAY_MOSI_PIN              (&omv_pin_B15_SPI2)
+#define OMV_SPI_DISPLAY_MISO_PIN              (&omv_pin_B14_SPI2)
+#define OMV_SPI_DISPLAY_SCLK_PIN              (&omv_pin_B13_SPI2)
+#define OMV_SPI_DISPLAY_SSEL_PIN              (&omv_pin_B12_GPIO)
+
+#define OMV_SPI_DISPLAY_RS_PIN                (&omv_pin_D13_GPIO)
+#define OMV_SPI_DISPLAY_RST_PIN               (&omv_pin_D12_GPIO)
+#define OMV_SPI_DISPLAY_BL_PIN                (&omv_pin_A5_GPIO)
 
 #endif //__OMV_BOARDCONFIG_H__
