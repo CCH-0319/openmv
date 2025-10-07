@@ -1,6 +1,7 @@
 name: '🔥 Firmware Build'
 
 on:
+  workflow_dispatch: {}   # 手動觸發
   push:
     tags:
       - 'v*.*.*'
@@ -37,7 +38,7 @@ jobs:
         target:
           #- OPENMV2
           #- OPENMV3
-          #- OPENMV4
+          - OPENMV4
           - STM32H743VGT6
           #- STM32H743XIH6
           #- OPENMV4P
