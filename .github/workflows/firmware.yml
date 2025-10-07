@@ -37,10 +37,10 @@ jobs:
         target:
           #- OPENMV2
           #- OPENMV3
-          - OPENMV4
+          #- OPENMV4
           - STM32H743VGT6
-          - STM32H743XIH6
-          - OPENMV4P
+          #- STM32H743XIH6
+          #- OPENMV4P
           #- OPENMVPT
           #- OPENMV_RT1060
           #- OPENMV_AE3
