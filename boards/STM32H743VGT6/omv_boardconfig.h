@@ -27,7 +27,7 @@
 #define __OMV_BOARDCONFIG_H__
 
 // Architecture info
-#define OMV_BOARD_ARCH                        "OMV4 H7 1024" // 33 chars max
+#define OMV_BOARD_ARCH                        "H743VGT6"  //"OMV4 H7 1024" // 33 chars max
 #define OMV_BOARD_TYPE                        "H7"
 #define OMV_BOARD_UID_ADDR                    0x1FF1E800    // Unique ID address.
 #define OMV_BOARD_UID_SIZE                    3             // Unique ID size in words.
@@ -37,7 +37,7 @@
 #define OMV_JPEG_CODEC_ENABLE                 (1)
 #define OMV_JPEG_QUALITY_LOW                  (50)
 #define OMV_JPEG_QUALITY_HIGH                 (90)
-#define OMV_JPEG_QUALITY_THRESHOLD            (320 * 240 * 2)
+#define OMV_JPEG_QUALITY_THRESHOLD            (1920 * 1080 * 2)  //(320 * 240 * 2)
 
 // GPU Configuration
 #define OMV_GPU_ENABLE                        (1)
@@ -231,9 +231,11 @@
 #define OMV_CSI_HSYNC_PIN                     (&omv_pin_A4_DCMI)
 #define OMV_CSI_VSYNC_PIN                     (&omv_pin_B7_DCMI)
 #define OMV_CSI_PXCLK_PIN                     (&omv_pin_A6_DCMI)
-#define OMV_CSI_RESET_PIN                     (&omv_pin_A10_GPIO)  //(&omv_pin_B3_GPIO)    //
-#define OMV_CSI_POWER_PIN                     (&omv_pin_D7_GPIO)   //(&omv_pin_D14_GPIO)   //
-#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)   //(&omv_pin_B4_GPIO)    //
+//#define OMV_CSI_RESET_PIN                     (&omv_pin_A10_GPIO)
+#define OMV_CSI_RESET_PIN                     (&omv_pin_A3_GPIO)   //cch
+//#define OMV_CSI_POWER_PIN                     (&omv_pin_D7_GPIO)
+#define OMV_CSI_POWER_PIN                     (&omv_pin_D14_GPIO)  //cch
+#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)
 
 // Physical I2C buses.
 
