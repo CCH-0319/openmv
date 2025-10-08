@@ -259,7 +259,7 @@ __weak void HAL_MspDeInit(void)
   * @param TickPriority: Tick interrupt priority.
   * @retval HAL status
   */
-#if (1)
+#if (0)
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   /* Check uwTickFreq for MisraC 2012 (even if uwTickFreq is a enum type that don't take the value zero)*/
@@ -290,8 +290,11 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 }
 #else
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
-    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000U);
+    uint32_t tick_hz = (uint32_t)HAL_GetTickFreq();  // 通常是 1000
+    HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);  // processor clock
+    // 用 CPU clock（= SystemCoreClock），不是 HAL_RCC_GetHCLKFreq()
+    HAL_SYSTICK_Config(SystemCoreClock / tick_hz);
+    // 或：HAL_SYSTICK_Config(HAL_RCC_GetSysClockFreq() / tick_hz);
     HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0);
     return HAL_OK;
 }
