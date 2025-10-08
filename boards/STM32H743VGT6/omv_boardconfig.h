@@ -77,7 +77,7 @@
 //PLL1 480MHz/48MHz for USB, SDMMC and FDCAN
 #define OMV_OSC_PLL1M                         (5)       // 25/5=5 MHz
 #define OMV_OSC_PLL1N                         (192)     // 5*192=960 MHz (VCO)
-#define OMV_OSC_PLL1P                         (2)       // 960/2=480 MHz SYSCLK
+#define OMV_OSC_PLL1P                         (4)       // 960/2=480 MHz SYSCLK
 #define OMV_OSC_PLL1Q                         (20)      // 960/20=48 MHz (USB)
 #define OMV_OSC_PLL1R                         (2)       // 960/2=480 MHz
 #define OMV_OSC_PLL1VCI                       (RCC_PLL1VCIRANGE_2)
