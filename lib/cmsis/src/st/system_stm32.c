@@ -155,6 +155,7 @@ void SystemClock_Config(void) {
 
     // Configure voltage scaling.
     #if defined(STM32H7)
+    #if (0)
     // Enable VSCALE0 for revision V devices.
     if (HAL_GetREVID() >= 0x2003) {
         __HAL_RCC_SYSCFG_CLK_ENABLE();
@@ -165,6 +166,9 @@ void SystemClock_Config(void) {
     #endif
         __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
     }
+    #endif
+    __HAL_RCC_SYSCFG_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
     // Wait for PWR_FLAG_VOSRDY
     #if defined(STM32H7)
@@ -217,11 +221,13 @@ void SystemClock_Config(void) {
     #if defined(STM32H7)
     // Override PLL1 frequency for revision Y devices,
     // with maximum frequency of 400MHz CPU 200MHz Bus.
+    #if (0) //cch
     if(HAL_GetREVID() < 0x2003) {
         // 400MHz/200MHz
         RCC_OscInitStruct.PLL.PLLN = 200;
         RCC_OscInitStruct.PLL.PLLQ = 16;
     }
+    #endif
     #endif
 
     #if defined(OMV_OSC_PLL1R)
@@ -382,4 +388,11 @@ void SystemClock_Config(void) {
     // Enable the USB voltage level detector
     HAL_PWREx_EnableUSBVoltageDetector();
     #endif
+
+    printf("SYSCLK=%lu HCLK=%lu PCLK1=%lu PCLK2=%lu\n",
+       HAL_RCC_GetSysClockFreq(),
+       HAL_RCC_GetHCLKFreq(),
+       HAL_RCC_GetPCLK1Freq(),
+       HAL_RCC_GetPCLK2Freq());
+    printf("SysTick LOAD=%lu\n", SysTick->LOAD);
 }
