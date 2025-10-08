@@ -7,28 +7,28 @@ on:
       - 'v*.*.*'
     branches:    
       - 'master'
-    paths:
-      - '**'
-      - '.github/workflows/*.yml'
-      - '.github/workflows/*.json'
-      - '!**.md'
-      - '!**.rst'
-      - '!**.md'
-      - '!cubeai**'
-      - '!scripts**'
+    #paths:
+    #  - '**'
+    #  - '.github/workflows/*.yml'
+    #  - '.github/workflows/*.json'
+    #  - '!**.md'
+    #  - '!**.rst'
+    #  - '!**.md'
+    #  - '!cubeai**'
+    #  - '!scripts**'
 
   pull_request:
     branches:    
       - 'master'
-    paths:
-      - '**'
-      - '.github/workflows/*.yml'
-      - '.github/workflows/*.json'
-      - '!**.md'
-      - '!**.rst'
-      - '!**.md'
-      - '!cubeai**'
-      - '!scripts**'
+    #paths:
+    #  - '**'
+    #  - '.github/workflows/*.yml'
+    #  - '.github/workflows/*.json'
+    #  - '!**.md'
+    #  - '!**.rst'
+    #  - '!**.md'
+    #  - '!cubeai**'
+    #  - '!scripts**'
 
 jobs:
   build-firmware:
@@ -38,7 +38,7 @@ jobs:
         target:
           #- OPENMV2
           #- OPENMV3
-          - OPENMV4
+          #- OPENMV4
           - STM32H743VGT6
           #- STM32H743XIH6
           #- OPENMV4P
