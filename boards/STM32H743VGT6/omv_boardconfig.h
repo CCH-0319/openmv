@@ -75,7 +75,7 @@
 #define OMV_USB_IRQN                          (OTG_FS_IRQn)
 
 //PLL1 480MHz/48MHz for USB, SDMMC and FDCAN
-#define OMV_OSC_PLL1M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL1M                         (6)       // 25/5=5 MHz
 #define OMV_OSC_PLL1N                         (192)     // 5*192=960 MHz (VCO)
 #define OMV_OSC_PLL1P                         (2)       // 960/2=480 MHz (SYSCLK)
 #define OMV_OSC_PLL1Q                         (20)      // 960/20=48 MHz (USB)
@@ -85,7 +85,7 @@
 #define OMV_OSC_PLL1FRAC                      (0)
 
 // PLL2 200MHz for FMC and QSPI.
-#define OMV_OSC_PLL2M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL2M                         (6)       // 25/5=5 MHz
 #define OMV_OSC_PLL2N                         (80)      // 5*80=400 MHz
 #define OMV_OSC_PLL2P                         (2)       // 400/2=200 MHz
 #define OMV_OSC_PLL2Q                         (2)       // 400/2=200 MHz
@@ -95,7 +95,7 @@
 #define OMV_OSC_PLL2FRAC                      (0)
 
 // PLL3 160MHz for ADC and SPI123
-#define OMV_OSC_PLL3M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL3M                         (6)       // 25/5=5 MHz
 #define OMV_OSC_PLL3N                         (64)      // 5*64=320 MHz
 #define OMV_OSC_PLL3P                         (2)       // 320/2=160 MHz
 #define OMV_OSC_PLL3Q                         (2)       // 320/2=160 MHz
