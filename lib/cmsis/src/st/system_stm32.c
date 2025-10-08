@@ -221,17 +221,12 @@ void SystemClock_Config(void) {
     #if defined(STM32H7)
     // Override PLL1 frequency for revision Y devices,
     // with maximum frequency of 400MHz CPU 200MHz Bus.
-    if(HAL_GetREVID() < 0x2003) {
+    if(0) {//(HAL_GetREVID() < 0x2003) {
         // 400MHz/200MHz
         RCC_OscInitStruct.PLL.PLLN = 200;
         RCC_OscInitStruct.PLL.PLLQ = 16;
     }
     #endif
-
-    RCC_OscInitStruct.PLL.PLLM = 5;
-    RCC_OscInitStruct.PLL.PLLN = 192;
-    RCC_OscInitStruct.PLL.PLLQ = 2;
-    RCC_OscInitStruct.PLL.PLLP = 20;
         
     #if defined(OMV_OSC_PLL1R)
     RCC_OscInitStruct.PLL.PLLR = OMV_OSC_PLL1R;
