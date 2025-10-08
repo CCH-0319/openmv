@@ -46,7 +46,7 @@
 #define OMV_OV2640_ENABLE                     (1)
 #define OMV_OV5640_ENABLE                     (1)
 #define OMV_OV5640_AF_ENABLE                  (1)
-#define OMV_OV5640_PLL_CTRL2                  (0x64)
+#define OMV_OV5640_PLL_CTRL2                  (0x30) //(0x64)
 #define OMV_OV5640_PLL_CTRL3                  (0x13)
 
 #define OMV_OV7725_ENABLE                     (1)
@@ -75,31 +75,31 @@
 #define OMV_USB_IRQN                          (OTG_FS_IRQn)
 
 //PLL1 480MHz/48MHz for USB, SDMMC and FDCAN
-#define OMV_OSC_PLL1M                         (5)       //(3)  //4MHz
-#define OMV_OSC_PLL1N                         (192)     //(240) //960MHz
-#define OMV_OSC_PLL1P                         (2)       //480MHz
-#define OMV_OSC_PLL1Q                         (20)      //48MHz
-#define OMV_OSC_PLL1R                         (2)       //480MHz
+#define OMV_OSC_PLL1M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL1N                         (192)     // 5*192=960 MHz (VCO)
+#define OMV_OSC_PLL1P                         (2)       // 960/2=480 MHz SYSCLK
+#define OMV_OSC_PLL1Q                         (20)      // 960/20=48 MHz (USB)
+#define OMV_OSC_PLL1R                         (2)       // 960/2=480 MHz
 #define OMV_OSC_PLL1VCI                       (RCC_PLL1VCIRANGE_2)
 #define OMV_OSC_PLL1VCO                       (RCC_PLL1VCOWIDE)
 #define OMV_OSC_PLL1FRAC                      (0)
 
 // PLL2 200MHz for FMC and QSPI.
-#define OMV_OSC_PLL2M                         (5)       //(3) 4MHz
-#define OMV_OSC_PLL2N                         (80)      //(100) 400MHz
-#define OMV_OSC_PLL2P                         (2)
-#define OMV_OSC_PLL2Q                         (2)
-#define OMV_OSC_PLL2R                         (2)
+#define OMV_OSC_PLL2M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL2N                         (80)      // 5*80=400 MHz
+#define OMV_OSC_PLL2P                         (2)       // 400/2=200 MHz
+#define OMV_OSC_PLL2Q                         (2)       // 400/2=200 MHz
+#define OMV_OSC_PLL2R                         (2)       // 400/2=200 MHz
 #define OMV_OSC_PLL2VCI                       (RCC_PLL2VCIRANGE_2)
 #define OMV_OSC_PLL2VCO                       (RCC_PLL2VCOWIDE)
 #define OMV_OSC_PLL2FRAC                      (0)
 
 // PLL3 160MHz for ADC and SPI123
-#define OMV_OSC_PLL3M                         (5)       //(3) 4MHz
-#define OMV_OSC_PLL3N                         (64)      //(80) 320MHz
-#define OMV_OSC_PLL3P                         (2)
-#define OMV_OSC_PLL3Q                         (2)
-#define OMV_OSC_PLL3R                         (2)
+#define OMV_OSC_PLL3M                         (5)       // 25/5=5 MHz
+#define OMV_OSC_PLL3N                         (64)      // 5*64=320 MHz
+#define OMV_OSC_PLL3P                         (2)       // 320/2=160 MHz
+#define OMV_OSC_PLL3Q                         (2)       // 320/2=160 MHz
+#define OMV_OSC_PLL3R                         (2)       // 320/2=160 MHz
 #define OMV_OSC_PLL3VCI                       (RCC_PLL3VCIRANGE_2)
 #define OMV_OSC_PLL3VCO                       (RCC_PLL3VCOWIDE)
 #define OMV_OSC_PLL3FRAC                      (0)
