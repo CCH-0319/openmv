@@ -289,7 +289,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   return HAL_OK;
 }
 #endif
-__weak uint32_t HAL_InitTick(uint32_t TickPriority) {
+__weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     // 1) 以 HCLK 為 SysTick 來源
     HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
