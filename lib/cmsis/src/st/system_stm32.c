@@ -26,7 +26,6 @@
  */
 #include STM32_HAL_H
 #include "omv_boardconfig.h"
-#include "omv_debug.h"
 
 // This variable is updated in two ways:
 // 1) by calling HAL API function HAL_RCC_GetHCLKFreq()
@@ -222,15 +221,18 @@ void SystemClock_Config(void) {
     #if defined(STM32H7)
     // Override PLL1 frequency for revision Y devices,
     // with maximum frequency of 400MHz CPU 200MHz Bus.
-    #if (0) //cch
     if(HAL_GetREVID() < 0x2003) {
         // 400MHz/200MHz
         RCC_OscInitStruct.PLL.PLLN = 200;
         RCC_OscInitStruct.PLL.PLLQ = 16;
     }
     #endif
-    #endif
 
+    RCC_OscInitStruct.PLL.PLLM = 5;
+    RCC_OscInitStruct.PLL.PLLN = 192;
+    RCC_OscInitStruct.PLL.PLLQ = 2;
+    RCC_OscInitStruct.PLL.PLLP = 20;
+        
     #if defined(OMV_OSC_PLL1R)
     RCC_OscInitStruct.PLL.PLLR = OMV_OSC_PLL1R;
     #endif
@@ -389,10 +391,4 @@ void SystemClock_Config(void) {
     // Enable the USB voltage level detector
     HAL_PWREx_EnableUSBVoltageDetector();
     #endif
-
-    _debug_printf("SYSCLK=%lu HCLK=%lu PCLK1=%lu PCLK2=%lu\n",
-              HAL_RCC_GetSysClockFreq(),
-              HAL_RCC_GetHCLKFreq(),
-              HAL_RCC_GetPCLK1Freq(),
-              HAL_RCC_GetPCLK2Freq());
 }
