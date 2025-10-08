@@ -26,7 +26,6 @@
  */
 #include STM32_HAL_H
 #include "omv_boardconfig.h"
-#include "stdio.h"
 
 // This variable is updated in two ways:
 // 1) by calling HAL API function HAL_RCC_GetHCLKFreq()
@@ -389,11 +388,4 @@ void SystemClock_Config(void) {
     // Enable the USB voltage level detector
     HAL_PWREx_EnableUSBVoltageDetector();
     #endif
-
-    printf("SYSCLK=%lu HCLK=%lu PCLK1=%lu PCLK2=%lu\n",
-       HAL_RCC_GetSysClockFreq(),
-       HAL_RCC_GetHCLKFreq(),
-       HAL_RCC_GetPCLK1Freq(),
-       HAL_RCC_GetPCLK2Freq());
-    printf("SysTick LOAD=%lu\n", SysTick->LOAD);
 }
