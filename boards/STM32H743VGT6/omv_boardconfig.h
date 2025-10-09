@@ -37,7 +37,7 @@
 #define OMV_JPEG_CODEC_ENABLE                 (1)
 #define OMV_JPEG_QUALITY_LOW                  (50)
 #define OMV_JPEG_QUALITY_HIGH                 (90)
-#define OMV_JPEG_QUALITY_THRESHOLD            (1920 * 1080 * 2)  //(320 * 240 * 2)
+#define OMV_JPEG_QUALITY_THRESHOLD            (640 * 480 * 2)  //(320 * 240 * 2)
 
 // GPU Configuration
 #define OMV_GPU_ENABLE                        (1)
@@ -46,27 +46,27 @@
 #define OMV_OV2640_ENABLE                     (1)
 #define OMV_OV5640_ENABLE                     (1)
 #define OMV_OV5640_AF_ENABLE                  (1)
-#define OMV_OV5640_PLL_CTRL2                  (0x30) //(0x64)
+#define OMV_OV5640_PLL_CTRL2                  (0x30)  //(0x64)
 #define OMV_OV5640_PLL_CTRL3                  (0x13)
 
-#define OMV_OV7725_ENABLE                     (1)
+#define OMV_OV7725_ENABLE                     (0)
 #define OMV_OV7725_PLL_CONFIG                 (0x41) // x4
 #define OMV_OV7725_BANDING                    (0x7F)
 
-#define OMV_OV9650_ENABLE                     (1)
-#define OMV_MT9M114_ENABLE                    (1)
-#define OMV_MT9V0XX_ENABLE                    (1)
-#define OMV_LEPTON_ENABLE                     (1)
-#define OMV_PAG7920_ENABLE                    (1)
-#define OMV_PAJ6100_ENABLE                    (1)
-#define OMV_PAJ6100_GLITCH_RECONFIG           (1)
-#define OMV_FROGEYE2020_ENABLE                (1)
+#define OMV_OV9650_ENABLE                     (0)
+#define OMV_MT9M114_ENABLE                    (0)
+#define OMV_MT9V0XX_ENABLE                    (0)
+#define OMV_LEPTON_ENABLE                     (0)
+#define OMV_PAG7920_ENABLE                    (0)
+#define OMV_PAJ6100_ENABLE                    (0)
+#define OMV_PAJ6100_GLITCH_RECONFIG           (0)
+#define OMV_FROGEYE2020_ENABLE                (0)
 
 // FIR drivers configuration.
-#define OMV_FIR_MLX90621_ENABLE               (1)
-#define OMV_FIR_MLX90640_ENABLE               (1)
-#define OMV_FIR_MLX90641_ENABLE               (1)
-#define OMV_FIR_AMG8833_ENABLE                (1)
+#define OMV_FIR_MLX90621_ENABLE               (0)
+#define OMV_FIR_MLX90640_ENABLE               (0)
+#define OMV_FIR_MLX90641_ENABLE               (0)
+#define OMV_FIR_AMG8833_ENABLE                (0)
 
 // UMM heap block size
 #define OMV_UMM_BLOCK_SIZE                    16
@@ -224,7 +224,7 @@
 #define OMV_CSI_D3_PIN                        (&omv_pin_E1_DCMI)
 #define OMV_CSI_D4_PIN                        (&omv_pin_E4_DCMI)
 //#define OMV_CSI_D5_PIN                        (&omv_pin_B6_DCMI)
-#define OMV_CSI_D5_PIN                        (&omv_pin_D3_DCMI)    //cch
+#define OMV_CSI_D5_PIN                        (&omv_pin_D3_DCMI)  //cch
 #define OMV_CSI_D6_PIN                        (&omv_pin_E5_DCMI)
 #define OMV_CSI_D7_PIN                        (&omv_pin_E6_DCMI)
 
@@ -232,7 +232,7 @@
 #define OMV_CSI_VSYNC_PIN                     (&omv_pin_B7_DCMI)
 #define OMV_CSI_PXCLK_PIN                     (&omv_pin_A6_DCMI)
 //#define OMV_CSI_RESET_PIN                     (&omv_pin_A10_GPIO)
-#define OMV_CSI_RESET_PIN                     (&omv_pin_A3_GPIO)   //cch
+#define OMV_CSI_RESET_PIN                     (&omv_pin_A3_GPIO)  //cch
 //#define OMV_CSI_POWER_PIN                     (&omv_pin_D7_GPIO)
 #define OMV_CSI_POWER_PIN                     (&omv_pin_D14_GPIO)  //cch
 #define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)
@@ -273,16 +273,28 @@
 #define OMV_SPI3_DMA_RX_CHANNEL               (DMA1_Stream2)
 #define OMV_SPI3_DMA_RX_REQUEST               (DMA_REQUEST_SPI3_RX)
 
+// SPI bus 4
+#define OMV_SPI4_ID                           (4)
+#define OMV_SPI4_SCLK_PIN                     (&omv_pin_E12_SPI4)
+#define OMV_SPI4_MISO_PIN                     (&omv_pin_E13_SPI4)
+#define OMV_SPI4_MOSI_PIN                     (&omv_pin_E14_SPI4)
+#define OMV_SPI4_SSEL_PIN                     (&omv_pin_E11_SPI4)
+#define OMV_SPI4_DMA_TX_CHANNEL               (DMA1_Stream7)
+#define OMV_SPI4_DMA_TX_REQUEST               (DMA_REQUEST_SPI4_TX)
+#define OMV_SPI4_DMA_RX_CHANNEL               (DMA1_Stream2)
+#define OMV_SPI4_DMA_RX_REQUEST               (DMA_REQUEST_SPI4_RX)
+
 // SPI LCD Interface
-#define OMV_SPI_DISPLAY_CONTROLLER            (OMV_SPI2_ID)
-#define OMV_SPI_DISPLAY_MOSI_PIN              (&omv_pin_B15_SPI2)
-#define OMV_SPI_DISPLAY_MISO_PIN              (&omv_pin_B14_SPI2)
-#define OMV_SPI_DISPLAY_SCLK_PIN              (&omv_pin_B13_SPI2)
-#define OMV_SPI_DISPLAY_SSEL_PIN              (&omv_pin_B12_GPIO)
+#define OMV_SPI_DISPLAY_CONTROLLER            (OMV_SPI4_ID)
+#define OMV_SPI_DISPLAY_MOSI_PIN              (&omv_pin_E14_SPI4)
+#define OMV_SPI_DISPLAY_MISO_PIN              (&omv_pin_E13_SPI4)
+#define OMV_SPI_DISPLAY_SCLK_PIN              (&omv_pin_E12_SPI4)
+#define OMV_SPI_DISPLAY_SSEL_PIN              (&omv_pin_E11_SPI4)
 
 //#define OMV_SPI_DISPLAY_RS_PIN                (&omv_pin_D13_GPIO)
 #define OMV_SPI_DISPLAY_RS_PIN                (&omv_pin_E15_GPIO)  //cch
-#define OMV_SPI_DISPLAY_RST_PIN               (&omv_pin_D12_GPIO)
+//#define OMV_SPI_DISPLAY_RST_PIN               (&omv_pin_D12_GPIO)
+#define OMV_SPI_DISPLAY_RST_PIN               (&omv_pin_E10_GPIO)  //cch
 //#define OMV_SPI_DISPLAY_BL_PIN                (&omv_pin_A5_GPIO)
 #define OMV_SPI_DISPLAY_BL_PIN                (&omv_pin_D15_GPIO)  //cch
 
