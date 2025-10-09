@@ -386,4 +386,10 @@ void SystemClock_Config(void) {
     // Enable the USB voltage level detector
     HAL_PWREx_EnableUSBVoltageDetector();
     #endif
+
+    printf("SYS=%lu HCLK=%lu PCLK1=%lu PCLK2=%lu\r\n",
+       HAL_RCC_GetSysClockFreq(),
+       HAL_RCC_GetHCLKFreq(),
+       HAL_RCC_GetPCLK1Freq(),
+       HAL_RCC_GetPCLK2Freq());
 }
