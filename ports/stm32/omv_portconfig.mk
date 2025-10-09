@@ -72,6 +72,8 @@ CFLAGS += -D$(MCU) \
           -DSTM32_HAL_H='<stm32$(MCU_SERIES)xx_hal.h>' \
           $(OMV_BOARD_CFLAGS)
 
+CFLAGS += -DHSE_VALUE=25000000U
+
 # Linker Flags
 LDFLAGS = -mthumb \
           -mcpu=$(CPU) \
