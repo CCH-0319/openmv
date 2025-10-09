@@ -1,7 +1,7 @@
 name: '🔥 Firmware Build'
 
 on:
-  # workflow_dispatch: {}   # 手動觸發
+  workflow_dispatch: {}   # 手動觸發
   push:
     tags:
       - 'v*.*.*'
