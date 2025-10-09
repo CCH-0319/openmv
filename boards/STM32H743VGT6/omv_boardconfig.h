@@ -116,7 +116,7 @@
 #define OMV_OSC_HSI48_STATE                   (RCC_HSI48_ON)
 
 // Flash Latency
-#define OMV_FLASH_LATENCY                     (FLASH_LATENCY_2)
+#define OMV_FLASH_LATENCY                     (FLASH_LATENCY_4)
 
 // Power supply configuration
 #define OMV_PWR_SUPPLY                        (PWR_LDO_SUPPLY)
