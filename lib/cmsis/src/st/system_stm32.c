@@ -26,6 +26,7 @@
  */
 #include STM32_HAL_H
 #include "omv_boardconfig.h"
+#include <stdio.h>
 
 // This variable is updated in two ways:
 // 1) by calling HAL API function HAL_RCC_GetHCLKFreq()
