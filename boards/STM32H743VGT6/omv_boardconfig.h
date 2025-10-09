@@ -49,24 +49,24 @@
 #define OMV_OV5640_PLL_CTRL2                  (0x30)  //(0x64)
 #define OMV_OV5640_PLL_CTRL3                  (0x13)
 
-#define OMV_OV7725_ENABLE                     (0)
+#define OMV_OV7725_ENABLE                     (1)
 #define OMV_OV7725_PLL_CONFIG                 (0x41) // x4
 #define OMV_OV7725_BANDING                    (0x7F)
 
-#define OMV_OV9650_ENABLE                     (0)
-#define OMV_MT9M114_ENABLE                    (0)
-#define OMV_MT9V0XX_ENABLE                    (0)
-#define OMV_LEPTON_ENABLE                     (0)
-#define OMV_PAG7920_ENABLE                    (0)
-#define OMV_PAJ6100_ENABLE                    (0)
-#define OMV_PAJ6100_GLITCH_RECONFIG           (0)
-#define OMV_FROGEYE2020_ENABLE                (0)
+#define OMV_OV9650_ENABLE                     (1)
+#define OMV_MT9M114_ENABLE                    (1)
+#define OMV_MT9V0XX_ENABLE                    (1)
+#define OMV_LEPTON_ENABLE                     (1)
+#define OMV_PAG7920_ENABLE                    (1)
+#define OMV_PAJ6100_ENABLE                    (1)
+#define OMV_PAJ6100_GLITCH_RECONFIG           (1)
+#define OMV_FROGEYE2020_ENABLE                (1)
 
 // FIR drivers configuration.
-#define OMV_FIR_MLX90621_ENABLE               (0)
-#define OMV_FIR_MLX90640_ENABLE               (0)
-#define OMV_FIR_MLX90641_ENABLE               (0)
-#define OMV_FIR_AMG8833_ENABLE                (0)
+#define OMV_FIR_MLX90621_ENABLE               (1)
+#define OMV_FIR_MLX90640_ENABLE               (1)
+#define OMV_FIR_MLX90641_ENABLE               (1)
+#define OMV_FIR_AMG8833_ENABLE                (1)
 
 // UMM heap block size
 #define OMV_UMM_BLOCK_SIZE                    16
