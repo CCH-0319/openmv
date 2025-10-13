@@ -205,7 +205,7 @@
 
 // Camera Interface
 #define OMV_CSI_CLK_SOURCE                    (OMV_CSI_CLK_SOURCE_TIM)
-#define OMV_CSI_CLK_FREQUENCY                 (25000000)        //(12000000)
+#define OMV_CSI_CLK_FREQUENCY                 (25000000)
 #define OMV_CSI_TIM                           (TIM1)
 #define OMV_CSI_TIM_PIN                       (&omv_pin_A8_TIM1)
 #define OMV_CSI_TIM_CHANNEL                   (TIM_CHANNEL_1)
@@ -232,10 +232,11 @@
 #define OMV_CSI_VSYNC_PIN                     (&omv_pin_B7_DCMI)
 #define OMV_CSI_PXCLK_PIN                     (&omv_pin_A6_DCMI)
 //#define OMV_CSI_RESET_PIN                     (&omv_pin_A10_GPIO)
-#define OMV_CSI_RESET_PIN                     (&omv_pin_A3_GPIO)  //cch
+#define OMV_CSI_RESET_PIN                     (&omv_pin_A7_GPIO)  //cch
 //#define OMV_CSI_POWER_PIN                     (&omv_pin_D7_GPIO)
 #define OMV_CSI_POWER_PIN                     (&omv_pin_D14_GPIO)  //cch
-#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)
+//#define OMV_CSI_FSYNC_PIN                     (&omv_pin_B4_GPIO)
+#define OMV_CSI_FSYNC_PIN                     (&omv_pin_C4_GPIO)
 
 // Physical I2C buses.
 
@@ -252,6 +253,7 @@
 // Physical SPI buses.
 
 // SPI bus 2
+/*
 #define OMV_SPI2_ID                           (2)
 #define OMV_SPI2_SCLK_PIN                     (&omv_pin_B13_SPI2)
 #define OMV_SPI2_MISO_PIN                     (&omv_pin_B14_SPI2)
@@ -261,6 +263,7 @@
 #define OMV_SPI2_DMA_TX_REQUEST               (DMA_REQUEST_SPI2_TX)
 #define OMV_SPI2_DMA_RX_CHANNEL               (DMA1_Stream3)
 #define OMV_SPI2_DMA_RX_REQUEST               (DMA_REQUEST_SPI2_RX)
+*/
 
 // SPI bus 3
 #define OMV_SPI3_ID                           (3)
