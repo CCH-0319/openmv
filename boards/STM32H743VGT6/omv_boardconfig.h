@@ -197,11 +197,14 @@
 #define OMV_CSI_SPI_ID                        (3)
 
 // WINC1500 WiFi module SPI bus
-#define OMV_WINC_SPI_ID                       (2)
+//#define OMV_WINC_SPI_ID                       (2)
+#define OMV_WINC_SPI_ID                       (3)
 #define OMV_WINC_SPI_BAUDRATE                 (40000000)
 #define OMV_WINC_EN_PIN                       (&omv_pin_A5_GPIO)
-#define OMV_WINC_RST_PIN                      (&omv_pin_D12_GPIO)
-#define OMV_WINC_IRQ_PIN                      (&omv_pin_D13_GPIO)
+//#define OMV_WINC_RST_PIN                      (&omv_pin_D12_GPIO)
+#define OMV_WINC_RST_PIN                      (&omv_pin_B0_GPIO)
+//#define OMV_WINC_IRQ_PIN                      (&omv_pin_D13_GPIO)
+#define OMV_WINC_IRQ_PIN                      (&omv_pin_B1_GPIO)
 
 // Camera Interface
 #define OMV_CSI_CLK_SOURCE                    (OMV_CSI_CLK_SOURCE_TIM)
