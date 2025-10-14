@@ -27,7 +27,7 @@
 #define __OMV_BOARDCONFIG_H__
 
 // Architecture info
-#define OMV_BOARD_ARCH                        "H743VGT6"  //"OMV4 H7 1024" // 33 chars max
+#define OMV_BOARD_ARCH                        "H743VGT6"    // 33 chars max
 #define OMV_BOARD_TYPE                        "H7"
 #define OMV_BOARD_UID_ADDR                    0x1FF1E800    // Unique ID address.
 #define OMV_BOARD_UID_SIZE                    3             // Unique ID size in words.
