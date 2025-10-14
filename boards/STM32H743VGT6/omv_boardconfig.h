@@ -144,7 +144,7 @@
 
 // Memory map.
 #define OMV_FLASH_ORIGIN                      0x08000000
-#define OMV_FLASH_LENGTH                      1024K //2048K
+#define OMV_FLASH_LENGTH                      2048K
 #define OMV_DTCM_ORIGIN                       0x20000000 // Note accessible by CPU and MDMA only.
 #define OMV_DTCM_LENGTH                       128K
 #define OMV_ITCM_ORIGIN                       0x00000000
@@ -167,7 +167,7 @@
 #define OMV_FLASH_TXT_LENGTH                  1664K
 
 // ROMFS configuration.
-#define OMV_ROMFS_PART0_ORIGIN                0x080E0000 //0x081E0000
+#define OMV_ROMFS_PART0_ORIGIN                0x081E0000
 #define OMV_ROMFS_PART0_LENGTH                128K
 
 // MDMA configuration
