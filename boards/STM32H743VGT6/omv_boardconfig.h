@@ -164,7 +164,7 @@
 #define OMV_FLASH_FFS_ORIGIN                  0x08020000
 #define OMV_FLASH_FFS_LENGTH                  128K
 #define OMV_FLASH_TXT_ORIGIN                  0x08040000
-#define OMV_FLASH_TXT_LENGTH                  640K //1664K
+#define OMV_FLASH_TXT_LENGTH                  1664K
 
 // ROMFS configuration.
 #define OMV_ROMFS_PART0_ORIGIN                0x080E0000 //0x081E0000
