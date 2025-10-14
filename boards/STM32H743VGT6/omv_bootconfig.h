@@ -43,7 +43,7 @@
 static const pin_t omv_boot_pins[] = {
   //{ .gpio = GPIOC, .pin = GPIO_PIN_1,  .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // LED
   { .gpio = GPIOC, .pin = GPIO_PIN_13, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // LED
-  { .gpio = GPIOA, .pin = GPIO_PIN_9,  .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_INPUT,  .pull = GPIO_NOPULL     }, // VBUS
+  //{ .gpio = GPIOA, .pin = GPIO_PIN_9,  .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_INPUT,  .pull = GPIO_NOPULL     }, // VBUS
   { .gpio = GPIOA, .pin = GPIO_PIN_11, .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_AF_PP, .alt = GPIO_AF10_OTG_FS  }, // DM
   { .gpio = GPIOA, .pin = GPIO_PIN_12, .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_AF_PP, .alt = GPIO_AF10_OTG_FS  }, // DP
 };
@@ -53,8 +53,10 @@ static const pin_t omv_boot_pins[] = {
 static const partition_t OMV_BOOT_DFU_PARTITIONS[] = {
   { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 1, .start = 0x08000000, .limit = 0x08020000, .attr = 0 }, // Boot
   { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x08020000, .limit = 0x08040000, .attr = 0 }, // FFS
-  { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x08040000, .limit = 0x081E0000, .attr = 0 }, // FIRMWARE
-  { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x081E0000, .limit = 0x08200000, .attr = 0 }, // ROMFS
+  //{ .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x08040000, .limit = 0x081E0000, .attr = 0 }, // FIRMWARE
+  //{ .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x081E0000, .limit = 0x08200000, .attr = 0 }, // ROMFS
+  { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x08040000, .limit = 0x080E0000, .attr = 0 }, // FIRMWARE
+  { .type = PTYPE_AXI_FLASH, .region =  -1, .rdonly = 0, .start = 0x080E0000, .limit = 0x08100000, .attr = 0 }, // ROMFS
 };
 #define OMV_BOOT_DFU_PARTITIONS_COUNT   4 // Must be a literal
 #define OMV_BOOT_DFU_PARTITIONS_STR     "BOOTLOADER", "FILESYSTEM", "FIRMWARE", "ROMFS0"
