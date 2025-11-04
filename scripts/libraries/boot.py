@@ -1,21 +1,38 @@
-# main.py (OpenMV / MicroPython for OpenMV4 H7 Plus) - v1.1.1
+# main.py (OpenMV / MicroPython for OpenMV4 H7 Plus) - v1.2.0
 import os, time, pyb, sensor, math
 try:
     import ustruct as struct
 except ImportError:
     import struct
+from pyb import Pin
 
-FIRMWARE_VERSION = "1.0.0"
+FIRMWARE_VERSION = "1.2.0"
 
-# ===== LED / USB / UART / RTC =====
+# ===== GPIO =====
 led_red   = pyb.LED(1)
 led_green = pyb.LED(2)
 led_blue  = pyb.LED(3)
+led_white = Pin('PC13', Pin.OUT_PP)
 
+# ===== USB =====
 usb = pyb.USB_VCP()
-UART_BAUD = 921600
-uart = pyb.UART(1, UART_BAUD, timeout_char=50)  # 8N1
 
+# ===== UART =====
+UART_ID = 1
+ALLOWED_BAUDS = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600)
+UART_BAUD = 115200  # 預設值改為 115200
+uart = pyb.UART(UART_ID, UART_BAUD, timeout_char=50)  # 8N1
+
+def uart_init(baud):
+    global uart, UART_BAUD
+    try:
+        uart.init(baudrate=int(baud), bits=8, parity=None, stop=1, timeout_char=50)
+        UART_BAUD = int(baud)
+        return True
+    except Exception:
+        return False
+
+# ===== RTC =====
 rtc = pyb.RTC()
 
 # ===== Camera defaults =====
@@ -39,6 +56,7 @@ expo_time_us      = 0              # 0=AUTO; 手動 100..100000 us
 expo_auto         = True
 contrast_level    = 0              # -3..+3
 brightness_level  = 0              # -3..+3
+saturation_level  = 0              # -3..+3
 gain_auto         = True
 gain_db_value     = None           # 浮點 dB（手動時）
 wbal_auto         = True
@@ -47,7 +65,7 @@ wbal_r_db         = None
 wbal_b_db         = None
 
 # ===== JPEG buffer (bytes) =====
-jpeg = None  # 以不可變 bytes 保存
+jpeg = None
 
 # ===== Config 檔 =====
 CONFIG_PATH  = "/flash/config.ini"
@@ -98,7 +116,7 @@ def sd_present():
         if _sd_dev is None:
             _sd_dev = pyb.SDCard()
         if hasattr(_sd_dev, 'present'):
-            return True#bool(_sd_dev.present())
+            return bool(_sd_dev.present())
         try:
             _sd_dev.init()
             return True
@@ -132,7 +150,7 @@ def sd_try_unmount(force=False):
         if not sd_is_mounted():
             return True
         if (not force) and sd_is_busy():
-            return False  # 延後卸載
+            return False
         os.umount(_sd_mount_path)
         _sd_mount_path = None
         return True
@@ -146,12 +164,12 @@ def check_sd_card(folder=JPEG_FOLDER):
         if not sd_is_mounted():
             if not sd_try_mount():
                 return False
-            sd_mark_busy(200)  # 掛載後緩衝
+            sd_mark_busy(200)
         base = sd_mount_path()
         items = set(os.listdir(base))
         if folder not in items:
             os.mkdir('{}/{}'.format(base, folder))
-            sd_mark_busy(200)  # 建目錄後緩衝
+            sd_mark_busy(200)
         return True
     except Exception:
         return False
@@ -164,7 +182,6 @@ def save_jpeg_to_sd(jpg_bytes, fname=None, folder=JPEG_FOLDER):
         y,m,d,wd,hh,mm,ss,sub = rtc.datetime()
         fname = "%04d%02d%02d_%02d%02d%02d.jpg" % (y,m,d,hh,mm,ss)
     fpath = "{}/{}/{}".format(base, folder, fname)
-    # 寫入前後皆標記 busy，避免拔卡瞬間卸載
     sd_mark_busy(600)
     try:
         with open(fpath, "wb") as f:
@@ -173,7 +190,7 @@ def save_jpeg_to_sd(jpg_bytes, fname=None, folder=JPEG_FOLDER):
         try:
             os.sync()
         finally:
-            sd_mark_busy(600)  # 寫完再延長一段時間
+            sd_mark_busy(600)
         return True
     except Exception:
         send_line("$CARD=WRITE_FAILED")
@@ -211,7 +228,6 @@ def link_write_once(buf, timeout=5000):
         else:
             w = uart.write(buf); return w if w else 0
     except TypeError:
-        # 某些埠對 memoryview 不友善 → 退回 bytes
         b = bytes(buf)
         if link_is_usb():
             try:
@@ -224,7 +240,6 @@ def link_write_once(buf, timeout=5000):
             w = uart.write(b); return w if w else 0
 
 def link_send_all(buf, timeout=5000):
-    # 接受 bytes / bytearray / memoryview，避免對 memoryview 再包一層
     try:
         mv = buf if isinstance(buf, memoryview) else memoryview(buf)
     except TypeError:
@@ -294,6 +309,7 @@ def save_config():
         cfg.append("EXPO=" + expo_str)
         cfg.append("CTST=" + str(int(contrast_level)))
         cfg.append("BRIT=" + str(int(brightness_level)))
+        cfg.append("SATR=" + str(int(saturation_level)))
         cfg.append("GAIN=" + ("AUTO" if gain_auto else "OFF"))
         if (not gain_auto) and (gain_db_value is not None):
             cfg.append("GAIN_DB=" + ("%.2f" % gain_db_value))
@@ -305,6 +321,9 @@ def save_config():
                 cfg.append("WB_R_DB=" + ("%.2f" % wbal_r_db))
                 cfg.append("WB_B_DB=" + ("%.2f" % wbal_b_db))
         cfg.append("")
+        cfg.append("[LINK]")
+        cfg.append("BAUD=" + str(int(UART_BAUD)))
+        cfg.append("")
         with open(CONFIG_PATH, "w") as f:
             f.write("\n".join(cfg)); f.flush()
         try: os.sync()
@@ -315,9 +334,10 @@ def save_config():
 
 def load_config():
     global frame_size, skip_ms, expo_time_us, expo_auto
-    global contrast_level, brightness_level
+    global contrast_level, brightness_level, saturation_level
     global gain_auto, gain_db_value
     global wbal_auto, wbal_temp_k, wbal_r_db, wbal_b_db
+    global UART_BAUD
     try:
         with open(CONFIG_PATH, "r") as f:
             section = None
@@ -330,55 +350,67 @@ def load_config():
                 if not s or "=" not in s: continue
                 key, val = s.split("=", 1)
                 key = key.strip().upper(); val = val.strip()
-                if section not in (None, "CAMERA"): continue
-                if key == "RESO":
-                    k = val.upper()
-                    if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]
-                elif key == "SKIP":
-                    try:
-                        ms = int(val)
-                        if 0 <= ms <= 10000: skip_ms = ms
-                    except: pass
-                elif key == "EXPO":
-                    v = val.upper()
-                    if v == "AUTO":
-                        expo_auto = True; expo_time_us = 0
-                    else:
+                if section in (None, "CAMERA"):
+                    if key == "RESO":
+                        k = val.upper()
+                        if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]
+                    elif key == "SKIP":
                         try:
-                            us = int(v)
-                            if 100 <= us <= 100000:
-                                expo_auto = False; expo_time_us = us
+                            ms = int(val)
+                            if 0 <= ms <= 10000: skip_ms = ms
                         except: pass
-                elif key == "CTST":
-                    try:
-                        c = int(val)
-                        if -3 <= c <= 3: contrast_level = c
-                    except: pass
-                elif key == "BRIT":
-                    try:
-                        b = int(val)
-                        if -3 <= b <= 3: brightness_level = b
-                    except: pass
-                elif key == "GAIN":
-                    gain_auto = (val.upper() == "AUTO")
-                elif key == "GAIN_DB":
-                    try:
-                        gain_db_value = float(val)
-                    except: pass
-                elif key == "WBAL":
-                    wbal_auto = (val.upper() == "AUTO")
-                elif key == "WBAL_TEMP":
-                    try:
-                        wbal_temp_k = int(val)
-                    except: pass
-                elif key == "WB_R_DB":
-                    try:
-                        wbal_r_db = float(val)
-                    except: pass
-                elif key == "WB_B_DB":
-                    try:
-                        wbal_b_db = float(val)
-                    except: pass
+                    elif key == "EXPO":
+                        v = val.upper()
+                        if v == "AUTO":
+                            expo_auto = True; expo_time_us = 0
+                        else:
+                            try:
+                                us = int(v)
+                                if 100 <= us <= 100000:
+                                    expo_auto = False; expo_time_us = us
+                            except: pass
+                    elif key == "CTST":
+                        try:
+                            c = int(val)
+                            if -3 <= c <= 3: contrast_level = c
+                        except: pass
+                    elif key == "BRIT":
+                        try:
+                            b = int(val)
+                            if -3 <= b <= 3: brightness_level = b
+                        except: pass
+                    elif key == "SATR":
+                        try:
+                            t = int(val)
+                            if -3 <= t <= 3: saturation_level = t
+                        except: pass
+                    elif key == "GAIN":
+                        gain_auto = (val.upper() == "AUTO")
+                    elif key == "GAIN_DB":
+                        try:
+                            gain_db_value = float(val)
+                        except: pass
+                    elif key == "WBAL":
+                        wbal_auto = (val.upper() == "AUTO")
+                    elif key == "WBAL_TEMP":
+                        try:
+                            wbal_temp_k = int(val)
+                        except: pass
+                    elif key == "WB_R_DB":
+                        try:
+                            wbal_r_db = float(val)
+                        except: pass
+                    elif key == "WB_B_DB":
+                        try:
+                            wbal_b_db = float(val)
+                        except: pass
+                elif section == "LINK":
+                    if key == "BAUD":
+                        try:
+                            b = int(val)
+                            if b in ALLOWED_BAUDS:
+                                UART_BAUD = b
+                        except: pass
         return True
     except OSError:
         save_config(); return False
@@ -386,6 +418,7 @@ def load_config():
         return False
 
 # ===== Commands: setters & queries =====
+# ---- TIME ----
 def set_time(val):
     def parse_time_to_tuple(timestr):
         timestr = timestr.strip().replace("/", "-")
@@ -404,6 +437,7 @@ def q_time():
     y,m,d,wd,hh,mm,ss,sub = rtc.datetime()
     send_line("$TIME=%04d-%02d-%02d %02d:%02d:%02d" % (y,m,d,hh,mm,ss))
 
+# ---- RESO ----
 def set_resolution(val):
     global frame_size
     key = val.strip().upper()
@@ -437,12 +471,6 @@ def q_skip():
 
 # ---- EXPO ----
 def set_expo_us(val):
-    """
-    支援：
-      $EXPO=AUTO        -> 自動曝光
-      $EXPO=100..100000 -> 手動曝光(us)
-    超出範圍或格式錯誤 -> $EXPO=ERROR
-    """
     global expo_time_us, expo_auto
     v = val.strip().upper()
     try:
@@ -468,7 +496,7 @@ def set_expo_us(val):
 def q_expo():
     send_line("$EXPO=AUTO" if expo_auto else "$EXPO=%d" % expo_time_us)
 
-# ---- CTST / BRIT ----
+# ---- CTST ----
 def set_contrast(val):
     global contrast_level
     try:
@@ -481,6 +509,7 @@ def set_contrast(val):
 
 def q_contrast(): send_line("$CTST=%d" % contrast_level)
 
+# ---- BRIT ----
 def set_brightness(val):
     global brightness_level
     try:
@@ -492,6 +521,21 @@ def set_brightness(val):
         send_line("$BRIT=ERROR")
 
 def q_brightness(): send_line("$BRIT=%d" % brightness_level)
+
+# ---- SATR ----
+def set_saturation(val):
+    """$SATR = -3..+3"""
+    global saturation_level
+    try:
+        v = int(val)
+        if v < -3 or v > 3: raise ValueError
+        #sensor.set_saturation(v)
+        saturation_level = v
+        save_config(); send_line("$SATR=%d" % v)
+    except Exception:
+        send_line("$SATR=ERROR")
+
+def q_saturation(): send_line("$SATR=%d" % saturation_level)
 
 # ---- GAIN ----
 def set_gain_mode(val):
@@ -568,6 +612,29 @@ def q_wbal():
         else:
             send_line("$WBAL=OFF")
 
+# ---- BAUD ----
+def set_baud(val):
+    v = val.strip()
+    try:
+        b = int(v)
+        if b not in ALLOWED_BAUDS:
+            send_line("$BAUD=ERROR"); return
+        if b == UART_BAUD:
+            save_config(); send_line("$BAUD=%d" % b); return
+        send_line("$BAUD=SWITCH,%d" % b)
+        pyb.delay(50)
+        if not uart_init(b):
+            send_line("$BAUD=ERROR"); return
+        save_config()
+        if link_is_usb():
+            send_line("$BAUD=%d" % b)
+    except Exception:
+        send_line("$BAUD=ERROR")
+
+def q_baud():
+    send_line("$BAUD=%d" % UART_BAUD)
+
+# ---- VERS ----
 def q_version(): send_line("$VERS=%s" % FIRMWARE_VERSION)
 
 # ===== Capture JPEG to RAM =====
@@ -576,38 +643,32 @@ def snapshot_jpeg(val):
     global jpeg, frame_size, skip_ms
     try:
         save_jpg = int(val)
-        #led_red.on(); led_green.on(); led_blue.on()
         led_red.off(); led_green.off(); led_blue.off()
-
         # 暖機：先用 QVGA，至少 200ms（或使用者設定的更長值）
         sensor.set_framesize(sensor.QVGA)
         sensor.skip_frames(time=min(200, skip_ms))
         sensor.snapshot()
-
         # 切回目標解析度：用使用者設定 skip_ms
         sensor.set_framesize(frame_size)
         sensor.skip_frames(time=skip_ms)
-
         # 取得當前最新幀並導出為不可變 bytes
         img = sensor.snapshot()
         try:
             jpeg = bytes(img.compress())
         except Exception:
             jpeg = bytes(img.compress(quality=80))
-
         led_red.off(); led_green.off(); led_blue.off()
-
         # 先存檔，再回覆（依你目前選擇）
         if save_jpg == 1 and jpeg and check_sd_card():
             save_jpeg_to_sd(jpeg)
-
         send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
     except Exception:
         send_line("$TAKE=ERROR")
     finally:
         led_red.off(); led_green.on(); led_blue.off()
 
-def q_take(): send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
+def q_take():
+    send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
 
 # ===== USB/UART chunked send of JPEG =====
 MAGIC = b"#CCH"; CHUNK_USB = 1024; CHUNK_UART = 256
@@ -616,7 +677,6 @@ def dump_jpg(start=0, size=None, add_magic=True):
     global jpeg
     if not jpeg:
         return 0
-
     n = len(jpeg)
     if start < 0: start = 0
     if start > n: start = n
@@ -625,11 +685,9 @@ def dump_jpg(start=0, size=None, add_magic=True):
     payload_len = end - start
     if payload_len <= 0:
         return 0
-
     if add_magic:
         header = MAGIC + struct.pack(">I", payload_len)
         link_send_all(header)
-
     mv = memoryview(jpeg)
     chunk = CHUNK_USB if link_is_usb() else CHUNK_UART
     i = start
@@ -643,7 +701,8 @@ def dump_jpg(start=0, size=None, add_magic=True):
         i = j
     return payload_len
 
-def q_dump(): send_line("$DUMP=%d" % (len(jpeg) if jpeg else 0))
+def q_dump():
+    send_line("$DUMP=%d" % (len(jpeg) if jpeg else 0))
 
 # ===== Line I/O （bytes 安全版）=====
 def read_line(timeout_ms=1000):
@@ -669,9 +728,7 @@ def handle_line(buf):
     i = buf.find(b"$")
     if i < 0:
         _emit("$EROR=HEADER"); return
-
     lineb = buf[i:].strip()
-
     # Query
     if lineb.endswith(b"?"):
         keyb = lineb[:-1].strip().upper()
@@ -684,24 +741,22 @@ def handle_line(buf):
         elif keyb == b"$LINK": _emit("$LINK=" + ("USB" if link_is_usb() else "UART"))
         elif keyb == b"$CTST": q_contrast()
         elif keyb == b"$BRIT": q_brightness()
+        elif keyb == b"$SATR": q_saturation()
         elif keyb == b"$GAIN": q_gain()
         elif keyb == b"$WBAL": q_wbal()
+        elif keyb == b"$BAUD": q_baud()
         elif keyb == b"$VERS": q_version()
         else: _emit("$EROR=CMD")
         return
-
     # 唯讀 VERS（誤用 '=' 也回覆）
     if lineb.startswith(b"$VERS"):
         _emit("$VERS=%s" % FIRMWARE_VERSION); return
-
     # Setter（需有 '='）
     if b"=" not in lineb:
         _emit("$EROR=SYNTAX"); return
-
     keyb, valb = lineb.split(b"=", 1)
     keyb = keyb.strip().upper()
     val  = _ascii_clean(valb.strip())
-
     if   keyb == b"$TIME": set_time(val)
     elif keyb == b"$RESO": set_resolution(val)
     elif keyb == b"$SKIP": set_skip_frames(val)
@@ -723,15 +778,17 @@ def handle_line(buf):
                 _emit("$EROR=DUMP")
     elif keyb == b"$CTST": set_contrast(val)
     elif keyb == b"$BRIT": set_brightness(val)
+    elif keyb == b"$SATR": set_saturation(val)
     elif keyb == b"$GAIN": set_gain_mode(val)
     elif keyb == b"$WBAL": set_wbal_mode(val)
+    elif keyb == b"$BAUD": set_baud(val)
     else:
         _emit("$EROR=CMD")
 
 # ===== Sensor init =====
 def init_sensor():
     global frame_size, skip_ms, expo_auto, expo_time_us
-    global contrast_level, brightness_level
+    global contrast_level, brightness_level, saturation_level
     global gain_auto, gain_db_value
     global wbal_auto, wbal_temp_k, wbal_r_db, wbal_b_db
 
@@ -779,17 +836,19 @@ def init_sensor():
     except Exception:
         pass
 
-    # 對比與亮度
+    # 對比、亮度、飽和
     try: sensor.set_contrast(contrast_level)
     except Exception: pass
     try: sensor.set_brightness(brightness_level)
     except Exception: pass
+    #try: sensor.set_saturation(saturation_level)
+    #except Exception: pass
 
 # ===== Main =====
 def main():
     send_line('System Power ON')
     _first = True
-    led_red.on(); led_green.off(); led_blue.off()
+    led_white.low()
     INTERVAL_MS = 1000
     next_at = time.ticks_add(time.ticks_ms(), INTERVAL_MS)
 
@@ -801,6 +860,9 @@ def main():
     while True:
         if _first:
             ok = load_config()
+            # 依 config 可能修改 UART 鮑率（在開機階段做，避免連線中途切換問題）
+            if UART_BAUD not in ALLOWED_BAUDS or not uart_init(UART_BAUD):
+                uart_init(115200)
             send_line("Config " + ("Loaded" if ok else "Created"))
             led_red.off(); led_green.on(); led_blue.off()
             send_line("Firmware Version : %s" % FIRMWARE_VERSION)
@@ -814,7 +876,7 @@ def main():
 
         # 心跳 LED
         if time.ticks_diff(time.ticks_ms(), next_at) >= 0:
-            led_green.toggle()
+            led_white.value(not led_white.value())
             next_at = time.ticks_add(next_at, INTERVAL_MS)
 
         # === SD 插拔偵測 ===
@@ -853,5 +915,6 @@ def main():
         if line is None:
             continue
         handle_line(line)
+
 
 main()
