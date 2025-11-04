@@ -27,7 +27,8 @@ ci_install_arm_llvm() {
 ########################################################################################
 # Install GNU Make.
 GNU_MAKE_PATH=${HOME}/cache/make
-GNU_MAKE_URL="https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz"
+#GNU_MAKE_URL="https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz"
+GNU_MAKE_URL="https://ftpmirror.gnu.org/make/make-4.4.1.tar.gz"
 
 ci_install_gnu_make() {
     mkdir -p ${GNU_MAKE_PATH}
