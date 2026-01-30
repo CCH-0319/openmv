@@ -42,12 +42,14 @@
 // Boot I/O pins.
 static const pin_t omv_boot_pins[] = {
   { .gpio = GPIOC, .pin = GPIO_PIN_13, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // LED
-  { .gpio = GPIOB, .pin = GPIO_PIN_14, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // IR_CUT
-  { .gpio = GPIOB, .pin = GPIO_PIN_15, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // IR_EN
-  { .gpio = GPIOD, .pin = GPIO_PIN_10, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // LED_EN
-  //{ .gpio = GPIOA, .pin = GPIO_PIN_9,  .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_INPUT,  .pull = GPIO_NOPULL     }, // VBUS
+//{ .gpio = GPIOA, .pin = GPIO_PIN_9,  .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_INPUT, .pull = GPIO_NOPULL      }, // VBUS
   { .gpio = GPIOA, .pin = GPIO_PIN_11, .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_AF_PP, .alt = GPIO_AF10_OTG_FS  }, // DM
   { .gpio = GPIOA, .pin = GPIO_PIN_12, .speed = GPIO_SPEED_HIGH, .mode = GPIO_MODE_AF_PP, .alt = GPIO_AF10_OTG_FS  }, // DP
+  { .gpio = GPIOB, .pin = GPIO_PIN_12, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // IR_CUT_P
+  { .gpio = GPIOB, .pin = GPIO_PIN_13, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // IR_EN
+  { .gpio = GPIOB, .pin = GPIO_PIN_14, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // LED_EN
+  { .gpio = GPIOD, .pin = GPIO_PIN_8,  .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_OUTPUT_PP, .pull = GPIO_PULLUP  }, // IR_CUT_N
+  { .gpio = GPIOB, .pin = GPIO_PIN_15, .speed = GPIO_SPEED_LOW,  .mode = GPIO_MODE_INPUT, .pull = GPIO_NOPULL      }, // SDMMC_DECT
 };
 #define OMV_BOOT_PINS_COUNT         (sizeof(omv_boot_pins) / sizeof(omv_boot_pins[0]))
 
