@@ -48,7 +48,7 @@ jobs:
           #- OPENMV3
           #- OPENMV4
           - STM32H743VGT6
-          #- STM32H743VIT6
+          - STM32H743VIT6
           #- STM32H743XIH6
           #- OPENMV4P
           #- OPENMVPT
