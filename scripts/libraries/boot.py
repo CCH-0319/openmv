@@ -288,8 +288,10 @@ def save_config():
         with open(CONFIG_PATH, "w") as f:
             f.write("\n".join(cfg));
             f.flush()
-        try: os.sync()
-        except Exception: pass
+        try: 
+            os.sync()
+        except Exception:
+            pass
         return True
     except Exception:
         return False
@@ -316,7 +318,7 @@ def load_config():
                     # resolution
                     if key == "RESO":
                         k = val.upper()
-                        if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]
+                        if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]                   
                     # frames skiped
                     elif key == "SKIP":
                         try:
@@ -383,7 +385,8 @@ def load_config():
                         except: UART_BAUD = 115200
         return True
     except OSError:
-        save_config(); return False
+        save_config(); 
+        return False
     except Exception:
         return False
 
@@ -736,6 +739,10 @@ def handle_line(buf):
         elif keyb == b"$TAKE": get_take()
         elif keyb == b"$DUMP": get_dump()
         elif keyb == b"$LINK": _emit("$LINK=" + ("USB" if link_is_usb() else "UART"))
+        elif keyb == b"$CONF": 
+            load_config()
+            get_resolution()
+            get_skip_frames()
         else: _emit("$EROR=CMD")
         return
     # 唯讀 VERS（誤用 '=' 也回覆）
