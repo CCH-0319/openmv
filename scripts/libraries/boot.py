@@ -5,7 +5,7 @@ import os, time, pyb, sensor
 import ustruct as struct
 from pyb import Pin
 import gc
-        
+
 # ===== Version =====
 FIRMWARE_VERSION = "1.0.0"
 
@@ -71,7 +71,8 @@ jpeg = None
 JPEG_FOLDER  = "JPEG"
 
 # ===== Config file =====
-CONFIG_PATH  = "/flash/config.ini"
+#CONFIG_PATH  = "/flash/config.ini"
+CONFIG_PATH  = "/config.ini"
 
 # ===== SD CARD hot-plug helpers (支持 /sdcard 與 /sd) =====
 _sd_dev = None
@@ -288,7 +289,7 @@ def save_config():
         with open(CONFIG_PATH, "w") as f:
             f.write("\n".join(cfg));
             f.flush()
-        try: 
+        try:
             os.sync()
         except Exception:
             pass
@@ -318,7 +319,7 @@ def load_config():
                     # resolution
                     if key == "RESO":
                         k = val.upper()
-                        if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]                   
+                        if k in RESOLUTION_MAP: frame_size = RESOLUTION_MAP[k]
                     # frames skiped
                     elif key == "SKIP":
                         try:
@@ -385,7 +386,7 @@ def load_config():
                         except: UART_BAUD = 115200
         return True
     except OSError:
-        save_config(); 
+        save_config();
         return False
     except Exception:
         return False
@@ -651,7 +652,7 @@ def snapshot_jpeg(val):
         if save_jpg == 1 and jpeg and check_sd_card():
             save_jpeg_to_sd(jpeg)
         send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
-        #send_line("EXP=%d GAIN=%.1f" % (exp, gain))        
+        #send_line("EXP=%d GAIN=%.1f" % (exp, gain))
     except Exception:
         send_line("$TAKE=ERROR")
     finally:
@@ -739,10 +740,7 @@ def handle_line(buf):
         elif keyb == b"$TAKE": get_take()
         elif keyb == b"$DUMP": get_dump()
         elif keyb == b"$LINK": _emit("$LINK=" + ("USB" if link_is_usb() else "UART"))
-        elif keyb == b"$CONF": 
-            load_config()
-            get_resolution()
-            get_skip_frames()
+        elif keyb == b"$CONF": load_config(); get_resolution(); get_skip_frames(); get_expo_us(); get_contrast(); get_brightness(); get_baud()
         else: _emit("$EROR=CMD")
         return
     # 唯讀 VERS（誤用 '=' 也回覆）
@@ -782,8 +780,10 @@ def handle_line(buf):
                 dump_jpg(start, size, add_magic=True)
             except Exception:
                 _emit("$EROR=DUMP")
-    else:
-        _emit("$EROR=CMD")
+    elif keyb == b"$CUTN":
+        if val == 0: ircut_day()
+        else: ircut_night()
+    else: _emit("$EROR=CMD")
 
 # ===== Sensor init =====
 def init_sensor():
@@ -845,7 +845,7 @@ def wait_flash(timeout_ms=3000):
 
 # ===== Main =====
 def main():
-    
+
     # Init
     _first = True
     led_white.low()
@@ -867,7 +867,8 @@ def main():
         # 第一次開機
         if _first:
             # 等 /flash 掛載完成
-            wait_flash()
+            # wait_flash()
+            # print(os.listdir('/'))
             # 依 config 可能修改 UART 鮑率（在開機階段做，避免連線中途切換問題）
             ok = load_config()
             if UART_BAUD not in ALLOWED_BAUDS or not uart_init(UART_BAUD):
