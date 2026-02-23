@@ -5,6 +5,7 @@ import os, time, pyb, sensor
 import ustruct as struct
 from pyb import Pin
 import gc
+import sys, vfs
 
 # ===== Version =====
 FIRMWARE_VERSION = "1.0.0"
@@ -69,10 +70,6 @@ wbal_auto         = True        # Lock AUTO
 # ===== JPEG buffer (bytes) =====
 jpeg = None
 JPEG_FOLDER  = "JPEG"
-
-# ===== Config file =====
-#CONFIG_PATH  = "/flash/config.ini"
-CONFIG_PATH  = "/config.ini"
 
 # ===== SD CARD hot-plug helpers (支持 /sdcard 與 /sd) =====
 _sd_dev = None
@@ -235,6 +232,14 @@ def send_line(text):
     try: link_send_all(data)
     except Exception: pass
 
+def send_uart(text):
+    data = (text + "\r\n").encode()
+    try: 
+        w = uart.write(data)
+        return w if w else 0
+    except Exception: 
+        return 0
+
 # ===== bytes 安全工具 =====
 def _emit(msg):
     send_line(msg)
@@ -245,6 +250,9 @@ def _ascii_clean(b):
         if 32 <= x <= 126 or x in (9, 10, 13):
             out.append(x)
     return out.decode()
+
+# ===== Config file =====
+CONFIG_PATH  = "/flash/config.ini"
 
 # ===== Config 存取 =====
 def save_config():
@@ -850,9 +858,28 @@ def wait_flash(timeout_ms=3000):
         pyb.delay(10)
     return False
 
+# ===== Mount flash =====
+def mount_flash():
+    if 'flash' in os.listdir('/'):
+        return True
+    bdev = None
+    try:
+        bdev = pyb.Flash(start=0)
+    except Exception:
+        pass    
+    try:
+        fat = vfs.VfsFat(bdev)
+        vfs.mount(fat, "/flash")
+    except Exception:
+        vfs.VfsFat.mkfs(bdev)
+        fat = vfs.VfsFat(bdev)
+        vfs.mount(fat, "/flash")    
+    print(os.listdir("/"))
+    return True
+
 # ===== Main =====
 def main():
-
+    
     # Init
     _first = True
     led_white.low()
@@ -860,6 +887,9 @@ def main():
     next_at = time.ticks_add(time.ticks_ms(), INTERVAL_MS)
     send_line("SYSTEM START")
 
+    # Mount File System
+    mount_flash()
+    
     # SD hot-plug polling
     SD_POLL_MS = 500
     next_sd_poll = time.ticks_add(time.ticks_ms(), SD_POLL_MS)
