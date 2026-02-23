@@ -1,18 +1,17 @@
-# main.py (OpenMV / MicroPython for OpenMV4 H7 Plus) - v1.2.0
-import os, time, pyb, sensor, math, image
-try:
-    import ustruct as struct
-except ImportError:
-    import struct
+# main.py (OpenMV / MicroPython for OpenMV4 H7 Plus)
+
+# ===== Import =====
+import os, time, pyb, sensor
+import ustruct as struct
 from pyb import Pin
-
-
-# ===== VERSION =====
-FIRMWARE_VERSION = "1.3.0"
+import gc
+        
+# ===== Version =====
+FIRMWARE_VERSION = "1.0.0"
 
 # ===== GPIO =====
 led_white  = Pin('PC13', Pin.OUT_PP)
-gpio_led   = Pin('PB11', Pin.OUT_PP)
+gpio_led   = Pin('PB14', Pin.OUT_PP)
 gpio_ir    = Pin('PB13', Pin.OUT_PP)
 gpio_cut_p = Pin('PB12', Pin.OUT_PP)
 gpio_cut_n = Pin('PD8', Pin.OUT_PP)
@@ -26,7 +25,7 @@ usb = pyb.USB_VCP()
 # ===== UART =====
 UART_ID = 1
 ALLOWED_BAUDS = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600)
-UART_BAUD = 115200  # 預設值改為 115200
+UART_BAUD = 115200
 uart = pyb.UART(UART_ID, UART_BAUD, timeout_char=50)
 
 def uart_init(baud):
@@ -58,7 +57,7 @@ for k, v in RESOLUTION_MAP.items():
     RESO_NAME[v] = k
 
 frame_size        = RESOLUTION_MAP['VGA']
-skip_ms           = 100         # 100..10000
+skip_ms           = 200         # 100..5000
 expo_time_us      = 0           # 0=AUTO; 手動 100..100000 us
 expo_auto         = True
 contrast_level    = 0           # -3..+3
@@ -69,24 +68,23 @@ wbal_auto         = True        # Lock AUTO
 
 # ===== JPEG buffer (bytes) =====
 jpeg = None
-
-# ===== Config 檔 =====
-CONFIG_PATH  = "/flash/config.ini"
 JPEG_FOLDER  = "JPEG"
 
-# ===== SD hot-plug helpers (支持 /sdcard 與 /sd) =====
+# ===== Config file =====
+CONFIG_PATH  = "/flash/config.ini"
+
+# ===== SD CARD hot-plug helpers (支持 /sdcard 與 /sd) =====
 _sd_dev = None
 sd_busy_until = 0  # ticks_ms 截止時間：期間內視為 SD 正忙碌，避免卸載
 _SD_MOUNT_CANDIDATES = ('/sdcard', '/sd')
-_sd_mount_path = None  # 真正掛載的路徑（/sdcard 或 /sd）
+_sd_mount_path = None  # 真正掛載的路徑(/sdcard 或 /sd)
 
-# 在未來 ms 毫秒內視為 SD 正忙（寫入/flush/建目錄/掛載等
-def sd_mark_busy(ms=400):
+def sd_mark_busy(ms=500):   # 在未來 ms 毫秒內視為 SD 正忙(寫入/flush/建目錄/掛載等)
     global sd_busy_until
     sd_busy_until = time.ticks_add(time.ticks_ms(), ms)
 
 def sd_is_busy():
-    return time.ticks_diff(sd_busy_until, time.ticks_ms()) > 0
+    return (time.ticks_diff(sd_busy_until, time.ticks_ms()) > 0)
 
 def _root_entries():
     try:
@@ -94,8 +92,7 @@ def _root_entries():
     except Exception:
         return set()
 
-# 是否已在 /sdcard 或 /sd 掛載（同時更新 _sd_mount_path
-def sd_is_mounted():
+def sd_is_mounted():    # 是否已在 /sdcard 或 /sd 掛載(同時更新 _sd_mount_path)
     global _sd_mount_path
     roots = _root_entries()
     for p in _SD_MOUNT_CANDIDATES:
@@ -105,14 +102,12 @@ def sd_is_mounted():
             return True
     return False
 
-# 回傳目前/預計的掛載點：優先 /sdcard，其次 /sd
-def sd_mount_path():
+def sd_mount_path():    # 回傳目前/預計的掛載點：優先 /sdcard，其次 /sd
     if sd_is_mounted():
         return _sd_mount_path
     return _SD_MOUNT_CANDIDATES[0]
 
-# 偵測卡是否存在：有 present() 就用；否則嘗試 init()
-def sd_present():
+def sd_present():       # 偵測卡是否存在：有 present() 就用；否則嘗試 init()
     global _sd_dev
     try:
         if _sd_dev is None:
@@ -123,20 +118,17 @@ def sd_present():
             _sd_dev.init()
             return True
         except Exception:
+            print("_sd_dev.init")
             return False
     except Exception:
         return False
 
-# 卡在、未掛 → 掛上（優先 /sdcard）；成功回 True
-def sd_try_mount():
+def sd_try_mount():     # 卡在、未掛 → 掛上(優先 /sdcard)；成功回 True
     global _sd_dev, _sd_mount_path
     try:
-        if sd_is_mounted():
-            return True
-        if not sd_present():
-            return False
-        if _sd_dev is None:
-            _sd_dev = pyb.SDCard()
+        if sd_is_mounted(): return True
+        if not sd_present(): return False
+        if _sd_dev is None: _sd_dev = pyb.SDCard()
         mount_at = sd_mount_path()
         os.mount(_sd_dev, mount_at)
         _sd_mount_path = mount_at
@@ -145,23 +137,19 @@ def sd_try_mount():
     except Exception:
         return False
 
-# 卡拔掉或要卸載 → umount；忙碌時若非 force 則延後
-def sd_try_unmount(force=False):
+def sd_try_unmount(force=False):    # 卡拔掉或要卸載 → umount；忙碌時若非 force 則延後
     global _sd_mount_path
     try:
-        if not sd_is_mounted():
-            return True
-        if (not force) and sd_is_busy():
-            return False
+        if not sd_is_mounted(): return True
+        if (not force) and sd_is_busy(): return False
         os.umount(_sd_mount_path)
         _sd_mount_path = None
         return True
     except Exception:
         return False
 
-# ===== SD card high level =====
-def check_sd_card(folder=JPEG_FOLDER):
-    """確保卡已掛載且資料夾存在"""
+# ===== SD CARD high level =====
+def check_sd_card(folder=JPEG_FOLDER):  # 確保卡已掛載且資料夾存在
     try:
         if not sd_is_mounted():
             if not sd_try_mount():
@@ -185,7 +173,7 @@ def save_jpeg_to_sd(jpg_bytes, fname=None, folder=JPEG_FOLDER):
         y,m,d,wd,hh,mm,ss,sub = rtc.datetime()
         fname = "%04d%02d%02d_%02d%02d%02d.jpg" % (y,m,d,hh,mm,ss)
     fpath = "{}/{}/{}".format(base, folder, fname)
-    sd_mark_busy(600)
+    sd_mark_busy(1000)
     try:
         with open(fpath, "wb") as f:
             f.write(jpg_bytes)
@@ -193,7 +181,7 @@ def save_jpeg_to_sd(jpg_bytes, fname=None, folder=JPEG_FOLDER):
         try:
             os.sync()
         finally:
-            sd_mark_busy(600)
+            sd_mark_busy(1000)
         return True
     except Exception:
         send_line("$CARD=WRITE_FAILED")
@@ -201,13 +189,10 @@ def save_jpeg_to_sd(jpg_bytes, fname=None, folder=JPEG_FOLDER):
 
 # ===== 通訊抽象層：USB 優先，否則 UART =====
 def link_is_usb():
-    try:
-        return bool(usb and usb.isconnected())
-    except Exception:
-        return False
+    try: return bool(usb and usb.isconnected())
+    except Exception: return False
 
-def link_write_once(buf, timeout=5000):
-    # 允許 bytes / bytearray / memoryview
+def link_write_once(buf, timeout=5000):     # 允許 bytes / bytearray / memoryview
     try:
         if link_is_usb():
             try:
@@ -450,11 +435,9 @@ def set_skip_frames(val):
         ms = int(val)
         if not (100 <= ms <= 5000): raise ValueError
         skip_ms = ms
-        sensor.set_framesize(sensor.QVGA)
         sensor.skip_frames(time=skip_ms)
         send_line("$SKIP=%d" % skip_ms)
         save_config()
-        sensor.set_framesize(frame_size)
     except Exception:
         send_line("$SKIP=ERROR")
 
@@ -486,7 +469,7 @@ def set_expo_us(val):
         send_line("$EXPO=ERROR")
 
 def get_expo_us():
-    send_line("$EXPO=AUTO" if expo_auto else "$EXPO=%d" % expo_time_us)
+    send_line("$EXPO=AUTO" if expo_auto else ("$EXPO=%d" % expo_time_us))
 
 # ---- CTST ----
 def set_contrast(val):
@@ -496,7 +479,7 @@ def set_contrast(val):
         if v < -3 or v > 3: raise ValueError
         sensor.set_contrast(v)
         send_line("$CTST=%d" % v)
-        ontrast_level = v
+        contrast_level = v
         save_config()
     except Exception:
         send_line("$CTST=ERROR")
@@ -614,18 +597,26 @@ def set_baud(val):
 def get_baud():
     send_line("$BAUD=%d" % UART_BAUD)
 
+def ircut_night():
+    gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
+
+def ircut_day():
+    gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
 
 # ===== Capture JPEG to RAM 0=只拍不存, 1=拍完存到 SD =====
 def snapshot_jpeg(val):
     global jpeg, frame_size, skip_ms
     try:
+        # 先把 jpeg 清空，避免記憶體不足
+        del jpeg
+        gc.collect()
         # 初始化
         save_jpg = int(val)
         gpio_led.off(); gpio_ir.off(); gpio_cut_p.off(); gpio_cut_n.off()
         # 暖機：先用 QVGA/200ms，抓一下畫面明暗度
         sensor.set_framesize(sensor.QVGA)
         sensor.skip_frames(time=200)
-        pyb.delay(20)
+        #pyb.delay(20)
         img = sensor.snapshot()
         try:
             exp = sensor.get_exposure_us()
@@ -635,28 +626,29 @@ def snapshot_jpeg(val):
             gain = 15
         # 依據亮度決定是否補光
         gain_over = 20
-        if led_en or (gain >= gain_over): gpio_led.on()
-        if ir_en or (gain >= gain_over): gpio_ir.on()
-        gpio_cut_p.off(); gpio_cut_n.off()
-        if (gain >= gain_over):
-            gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
-        else:
-            gpio_cut_n.on(); pyb.delay(20); gpio_cut_n.off()
+        night_view_en = 0
+        if led_en and (gain >= gain_over): gpio_led.on(); night_view_en = 1
+        if ir_en and (gain >= gain_over): gpio_ir.on(); night_view_en = 1
+        if ir_cut and (gain >= gain_over): ircut_night(); night_view_en = 1
+        if night_view_en: pyb.delay(500)
         # 切回目標解析度：用使用者設定 skip_ms
         sensor.set_framesize(frame_size)
-        sensor.skip_frames(time=min(500, skip_ms))
-        pyb.delay(20)
+        sensor.skip_frames(time=max(200, skip_ms))
         img = sensor.snapshot()
+        jpeg = bytes(sensor.get_fb().bytearray())
+        del img
+        """
         # 取得當前最新幀並導出為不可變 bytes
         try:
             jpeg = bytes(img.compress())
         except Exception:
             jpeg = bytes(img.compress(quality=80))
+        """
         # 先存檔，再回覆（依你目前選擇）
         if save_jpg == 1 and jpeg and check_sd_card():
             save_jpeg_to_sd(jpeg)
         send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
-        send_line("EXP=%d GAIN=%.1f" % (exp, gain))
+        #send_line("EXP=%d GAIN=%.1f" % (exp, gain))        
     except Exception:
         send_line("$TAKE=ERROR")
     finally:
@@ -666,7 +658,9 @@ def get_take():
     send_line("$TAKE=%d" % (len(jpeg) if jpeg else 0))
 
 # ===== USB/UART chunked send of JPEG =====
-MAGIC = b"#CCH"; CHUNK_USB = 1024; CHUNK_UART = 256
+MAGIC = b"#CCH"
+CHUNK_USB = 1024
+CHUNK_UART = 256
 
 def dump_jpg(start=0, size=None, add_magic=True):
     global jpeg
@@ -707,7 +701,7 @@ def read_line(timeout_ms=1000):
                     chunk = usb.read()
                     if chunk: buf += chunk
                     if b"\n" in buf: return buf
-            if True:
+            if True: #else:
                 if uart.any():
                     chunk = uart.read()
                     if chunk: buf += chunk
@@ -826,9 +820,9 @@ def init_sensor():
     except Exception: pass
     try: sensor.set_brightness(brightness_level)
     except Exception: pass
+    # Stauration function NG
     #try: sensor.set_saturation(saturation_level)
     #except Exception: pass
-
 
 # ===== Main =====
 def main():
@@ -844,6 +838,11 @@ def main():
     SD_POLL_MS = 500
     next_sd_poll = time.ticks_add(time.ticks_ms(), SD_POLL_MS)
     last_sd_present = None
+
+    gpio_cut_p.high()
+    gpio_cut_n.high()
+    pyb.delay(150)
+    gpio_cut_n.low()
 
     while True:
         # 第一次開機
@@ -863,7 +862,8 @@ def main():
             send_line("CAMERA START")
             init_sensor()
             send_line("CAMERA DONE")
-            #snapshot_jpeg(0)
+            # 是否開機抓一張
+            # snapshot_jpeg(0)
             _first = False
         # 心跳 LED
         if time.ticks_diff(time.ticks_ms(), next_at) >= 0:
