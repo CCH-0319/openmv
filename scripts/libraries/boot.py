@@ -845,7 +845,6 @@ def init_sensor():
     #except Exception: pass
 
 # ===== Mount flash =====
-"""
 def mount_flash():
     if 'flash' in os.listdir('/'):
         return True
@@ -918,6 +917,7 @@ def mount_flash(mnt="/flash"):
     except Exception as e:
         print("list debug err:", repr(e))
     return True
+"""
 
 # ===== Main =====
 def main():
