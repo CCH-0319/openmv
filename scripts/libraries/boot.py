@@ -304,10 +304,13 @@ def load_config():
     global led_en, ir_en, ir_cut
     global UART_BAUD
     try:
+        print(os.listdir('/'))            
         with open(CONFIG_PATH, "r") as f:
+            print("open config ok")
             section = None
             for raw in f:
                 s = raw.strip()
+                print(s)
                 if not s or s.startswith("#") or s.startswith(";"): continue
                 if s.startswith("[") and s.endswith("]"):
                     section = s[1:-1].strip().upper(); continue
@@ -325,7 +328,7 @@ def load_config():
                         try:
                             ms = int(val)
                             if 0 <= ms <= 10000: skip_ms = ms
-                        except: skip_ms = 500
+                        except: pass
                     # expo
                     elif key == "EXPO":
                         v = val.upper()
@@ -357,10 +360,10 @@ def load_config():
                         except: saturation_level = 0
                     # gain auto
                     elif key == "GAIN":
-                        gain_auto = "AUTO"
+                        gain_auto = True
                     # white balance auto
                     elif key == "WBAL":
-                        wbal_auto =  "AUTO"
+                        wbal_auto =  True
                     # led
                     elif key == "LTEN":
                         try:
@@ -386,7 +389,11 @@ def load_config():
                         except: UART_BAUD = 115200
         return True
     except OSError:
-        save_config();
+        print("open config error")
+        try: 
+            save_config()
+        except Exception:
+            pass
         return False
     except Exception:
         return False
@@ -866,9 +873,6 @@ def main():
     while True:
         # 第一次開機
         if _first:
-            # 等 /flash 掛載完成
-            # wait_flash()
-            # print(os.listdir('/'))
             # 依 config 可能修改 UART 鮑率（在開機階段做，避免連線中途切換問題）
             ok = load_config()
             if UART_BAUD not in ALLOWED_BAUDS or not uart_init(UART_BAUD):
