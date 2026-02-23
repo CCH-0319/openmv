@@ -1,7 +1,8 @@
 # main.py (OpenMV / MicroPython for OpenMV4 H7 Plus)
 
 # ===== Import =====
-import os, time, pyb, sensor
+import time, pyb, sensor
+import uos as os
 import ustruct as struct
 from pyb import Pin
 import gc
@@ -312,13 +313,10 @@ def load_config():
     global led_en, ir_en, ir_cut
     global UART_BAUD
     try:
-        print(os.listdir('/'))            
         with open(CONFIG_PATH, "r") as f:
-            print("open config ok")
             section = None
             for raw in f:
                 s = raw.strip()
-                print(s)
                 if not s or s.startswith("#") or s.startswith(";"): continue
                 if s.startswith("[") and s.endswith("]"):
                     section = s[1:-1].strip().upper(); continue
@@ -616,11 +614,11 @@ def set_baud(val):
 def get_baud():
     send_line("$BAUD=%d" % UART_BAUD)
 
-def ircut_night():
-    gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
-
-def ircut_day():
-    gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
+def ircut_mode(val):
+    if val:
+        gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
+    else:
+        gpio_cut_p.on(); pyb.delay(20); gpio_cut_p.off()
 
 # ===== Capture JPEG to RAM 0=只拍不存, 1=拍完存到 SD =====
 def snapshot_jpeg(val):
@@ -648,7 +646,7 @@ def snapshot_jpeg(val):
         night_view_en = 0
         if led_en and (gain >= gain_over): gpio_led.on(); night_view_en = 1
         if ir_en and (gain >= gain_over): gpio_ir.on(); night_view_en = 1
-        if ir_cut and (gain >= gain_over): ircut_night(); night_view_en = 1
+        if ir_cut and (gain >= gain_over): night_view_en = 1; ircut_mode(night_view_en)
         if night_view_en: pyb.delay(500)
         # 切回目標解析度：用使用者設定 skip_ms
         sensor.set_framesize(frame_size)
@@ -846,19 +844,8 @@ def init_sensor():
     #try: sensor.set_saturation(saturation_level)
     #except Exception: pass
 
-# ===== Wait flash =====
-def wait_flash(timeout_ms=3000):
-    t0 = pyb.millis()
-    while pyb.elapsed_millis(t0) < timeout_ms:
-        try:
-            if 'flash' in os.listdir('/'):
-                return True
-        except:
-            pass
-        pyb.delay(10)
-    return False
-
 # ===== Mount flash =====
+"""
 def mount_flash():
     if 'flash' in os.listdir('/'):
         return True
@@ -875,6 +862,61 @@ def mount_flash():
         fat = vfs.VfsFat(bdev)
         vfs.mount(fat, "/flash")    
     print(os.listdir("/"))
+    return True
+"""
+def mount_flash(mnt="/flash"):
+    # 先看是不是已經有 /flash
+    try:
+        if "flash" in os.listdir("/"):
+            return True
+    except Exception:
+        # root 列不出來也沒關係，繼續嘗試 mount
+        pass
+    # 取得 block device
+    try:
+        bdev = pyb.Flash()   # 建議不要帶參數
+    except Exception as e:
+        print("pyb.Flash() error:", repr(e))
+        return False
+    # 先試直接 mount
+    try:
+        os.mount(bdev, mnt)
+        goto = True
+    except Exception:
+        goto = False
+    if not goto:
+        # mount 失敗 → 嘗試 mkfs (依你有編進去哪個 VFS)
+        # 1) LFS2
+        try:
+            os.VfsLfs2.mkfs(bdev)
+            os.mount(bdev, mnt)
+            goto = True
+        except Exception:
+            pass
+        # 2) FAT
+        if not goto:
+            try:
+                os.VfsFat.mkfs(bdev)
+                os.mount(bdev, mnt)
+                goto = True
+            except Exception:
+                pass
+    if not goto:
+        print("mount_flash failed: no VFS (LFS2/FAT) or bad flash layout")
+        return False
+    # 讓相對路徑都落在 /flash（強烈建議）
+    try:
+        os.chdir(mnt)
+    except Exception:
+        pass
+    if mnt not in sys.path:
+        sys.path.append(mnt)
+    # debug
+    try:
+        print("root:", os.listdir("/"))
+        print(mnt, ":", os.listdir(mnt))
+    except Exception as e:
+        print("list debug err:", repr(e))
     return True
 
 # ===== Main =====
